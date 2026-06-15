@@ -107,7 +107,7 @@ https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.m
 #EXTINF:-1 tvg-name="Sintel" tvg-logo="" group-title="Movies",Sintel
 https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/Sintel.mp4
 #EXTINF:-1 tvg-name="Sample HLS" tvg-logo="" group-title="Live",Sample HLS
-https://cdn.jwplayer.com/manifests/pZxWPRg4.m3u8`,
+https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8`,
 
   news: `#EXTM3U
 #EXTINF:-1 tvg-name="Demo News 1" tvg-logo="" group-title="News",Demo News 1
