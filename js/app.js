@@ -362,33 +362,41 @@ function playStream(url) {
   // Destroy old HLS instance
   if (state.hls) { state.hls.destroy(); state.hls = null; }
 
+  // Reset error handler
+  video.onerror = () => showPlayerError();
+
+  const tryDirect = () => {
+    video.src = url;
+    video.load();
+    video.play().catch(() => {}); // autoplay block is not a stream error — user can press play
+  };
+
+  const hlsAvailable = typeof Hls !== 'undefined';
+
   if (url.includes('.m3u8') || url.includes('m3u8') || url.toLowerCase().includes('hls')) {
-    if (Hls.isSupported()) {
+    if (hlsAvailable && Hls.isSupported()) {
       const hls = new Hls({ startLevel: -1, capLevelToPlayerSize: true });
       hls.loadSource(url);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => { hidePlayerError(); video.play().catch(() => {}); });
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        hidePlayerError();
+        video.play().catch(() => {}); // autoplay block — not a stream error
+      });
       hls.on(Hls.Events.ERROR, (_, data) => {
         if (data.fatal) {
-          // Try direct playback as fallback
-          video.src = url;
-          video.play().catch(() => { showPlayerError(); });
-          // If video stalls/errors show the overlay
-          video.onerror = () => showPlayerError();
+          hls.destroy();
+          state.hls = null;
+          showPlayerError(); // HLS failed fatally — show error with VLC suggestion
         }
       });
       state.hls = hls;
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-      video.src = url;
-      video.onerror = () => showPlayerError();
-      video.play().catch(() => { showPlayerError(); });
+      tryDirect();
     } else {
       showPlayerError();
     }
   } else {
-    video.src = url;
-    video.onerror = () => showPlayerError();
-    video.play().catch(() => { showPlayerError(); });
+    tryDirect();
   }
 }
 
