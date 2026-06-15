@@ -185,11 +185,35 @@ textarea { resize: vertical; }
 .ch-info { flex: 1; min-width: 0; }
 .ch-name { font-size: 0.82rem; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ch-group { font-size: 0.7rem; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ch-actions {
+  display: flex; flex-direction: column; align-items: flex-end; gap: 4px; flex-shrink: 0;
+}
 .ch-live-badge {
   font-size: 0.65rem; font-weight: 700; color: var(--red);
   background: rgba(239,68,68,.12); border-radius: 4px; padding: 1px 5px;
   flex-shrink: 0;
 }
+.vlc-btn {
+  display: none;
+  font-size: 0.6rem; font-weight: 700;
+  color: #ff8c00; background: rgba(255,140,0,.12);
+  border: 1px solid rgba(255,140,0,.3);
+  border-radius: 4px; padding: 1px 6px;
+  cursor: pointer; white-space: nowrap;
+  transition: background var(--trans), color var(--trans);
+}
+.vlc-btn:hover { background: rgba(255,140,0,.28); color: #ffaa33; }
+.channel-item:hover .vlc-btn { display: inline-block; }
+
+.vlc-btn-player {
+  font-size: 0.75rem; font-weight: 700;
+  color: #ff8c00; background: rgba(255,140,0,.15);
+  border: 1px solid rgba(255,140,0,.4);
+  border-radius: 6px; padding: 4px 10px;
+  cursor: pointer; white-space: nowrap;
+  transition: background var(--trans), color var(--trans);
+}
+.vlc-btn-player:hover { background: rgba(255,140,0,.3); color: #ffaa33; }
 
 .sidebar-empty {
   display: none; flex-direction: column; align-items: center;
