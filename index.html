@@ -52,6 +52,11 @@
       <section class="player-section" id="playerSection" style="display:none">
         <div class="player-wrap">
           <video id="videoPlayer" controls autoplay></video>
+          <div id="playerError" class="player-error" style="display:none">
+            <div class="player-error-icon">&#128683;</div>
+            <div class="player-error-msg">Stream blocked by browser (CORS / mixed content)</div>
+            <div class="player-error-hint">Click <strong>&#9654; Open in VLC</strong> below to play this channel in VLC instead</div>
+          </div>
           <div class="player-info">
             <span id="playerChannelName" class="player-channel"></span>
             <span id="playerProgramName" class="player-program"></span>
