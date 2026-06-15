@@ -348,8 +348,16 @@ function selectChannel(ch) {
   if (row) row.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+function showPlayerError() {
+  document.getElementById('playerError').style.display = 'flex';
+}
+function hidePlayerError() {
+  document.getElementById('playerError').style.display = 'none';
+}
+
 function playStream(url) {
   const video = document.getElementById('videoPlayer');
+  hidePlayerError();
 
   // Destroy old HLS instance
   if (state.hls) { state.hls.destroy(); state.hls = null; }
@@ -359,22 +367,28 @@ function playStream(url) {
       const hls = new Hls({ startLevel: -1, capLevelToPlayerSize: true });
       hls.loadSource(url);
       hls.attachMedia(video);
-      hls.on(Hls.Events.MANIFEST_PARSED, () => video.play().catch(() => {}));
+      hls.on(Hls.Events.MANIFEST_PARSED, () => { hidePlayerError(); video.play().catch(() => {}); });
       hls.on(Hls.Events.ERROR, (_, data) => {
         if (data.fatal) {
-          showToast('Stream error — trying direct', 'error');
+          // Try direct playback as fallback
           video.src = url;
-          video.play().catch(() => {});
+          video.play().catch(() => { showPlayerError(); });
+          // If video stalls/errors show the overlay
+          video.onerror = () => showPlayerError();
         }
       });
       state.hls = hls;
     } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
       video.src = url;
-      video.play().catch(() => {});
+      video.onerror = () => showPlayerError();
+      video.play().catch(() => { showPlayerError(); });
+    } else {
+      showPlayerError();
     }
   } else {
     video.src = url;
-    video.play().catch(() => {});
+    video.onerror = () => showPlayerError();
+    video.play().catch(() => { showPlayerError(); });
   }
 }
 
