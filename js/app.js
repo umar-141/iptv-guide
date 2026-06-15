@@ -290,7 +290,7 @@ function renderChannelList() {
         </div>
         <div class="ch-actions">
           <span class="ch-live-badge">LIVE</span>
-          <button class="vlc-btn" data-id="${ch.id}" title="Open in VLC">&#9654; VLC</button>
+          <button class="vlc-btn" data-id="${ch.id}" title="Copy stream URL">&#128203; Copy</button>
         </div>
       </li>
     `;
@@ -314,18 +314,33 @@ function renderChannelList() {
 
 // ═══════════════════════ VLC ═══════════════════════
 function openInVLC(ch) {
-  const m3u = '#EXTM3U\n#EXTINF:-1 tvg-name="' + ch.name + '" tvg-logo="' + (ch.logo || '') + '" group-title="' + (ch.group || '') + '",' + ch.name + '\n' + ch.url + '\n';
-  // Use octet-stream so Windows does NOT auto-open with a default app (Roblox hijacks .m3u)
-  const blob = new Blob([m3u], { type: 'application/octet-stream' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = ch.name.replace(/[^a-z0-9]/gi, '_') + '.m3u';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  showToast('Saved! Right-click the .m3u file → Open with → VLC', 'success');
+  // Copy stream URL to clipboard — works with VLC, Smarters, MX Player, any IPTV app
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(ch.url).then(() => {
+      showToast('Stream URL copied! Paste into Smarters, VLC, or any IPTV player', 'success');
+    }).catch(() => {
+      fallbackCopy(ch.url);
+    });
+  } else {
+    fallbackCopy(ch.url);
+  }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.style.position = 'fixed';
+  ta.style.opacity = '0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try {
+    document.execCommand('copy');
+    showToast('Stream URL copied! Paste into Smarters, VLC, or any IPTV player', 'success');
+  } catch {
+    prompt('Copy this URL and paste into your IPTV player:', text);
+  }
+  document.body.removeChild(ta);
 }
 
 // ═══════════════════════ PLAYER ═══════════════════════
