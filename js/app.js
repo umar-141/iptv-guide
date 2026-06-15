@@ -288,7 +288,10 @@ function renderChannelList() {
           <div class="ch-group">${escHtml(ch.group)}</div>
           ${prog ? `<div style="font-size:.65rem;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(prog.title)}</div>` : ''}
         </div>
-        <span class="ch-live-badge">LIVE</span>
+        <div class="ch-actions">
+          <span class="ch-live-badge">LIVE</span>
+          <button class="vlc-btn" data-id="${ch.id}" title="Open in VLC">&#9654; VLC</button>
+        </div>
       </li>
     `;
   }).join('');
@@ -299,6 +302,29 @@ function renderChannelList() {
       if (ch) selectChannel(ch);
     });
   });
+
+  list.querySelectorAll('.vlc-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      const ch = state.channels.find(c => c.id == btn.dataset.id);
+      if (ch) openInVLC(ch);
+    });
+  });
+}
+
+// ═══════════════════════ VLC ═══════════════════════
+function openInVLC(ch) {
+  const m3u = '#EXTM3U\n#EXTINF:-1 tvg-name="' + ch.name + '" tvg-logo="' + (ch.logo || '') + '" group-title="' + (ch.group || '') + '",' + ch.name + '\n' + ch.url + '\n';
+  const blob = new Blob([m3u], { type: 'audio/x-mpegurl' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = ch.name.replace(/[^a-z0-9]/gi, '_') + '.m3u';
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  showToast('Downloading .m3u for VLC — double-click the file to open in VLC', 'success');
 }
 
 // ═══════════════════════ PLAYER ═══════════════════════
@@ -308,6 +334,12 @@ function selectChannel(ch) {
   const prog = getCurrentProgram(state.epgData, String(ch.id));
   document.getElementById('playerProgramName').textContent = prog ? prog.title : 'Live';
   document.getElementById('playerSection').style.display = 'block';
+
+  // Wire VLC button in player
+  const playerVlc = document.getElementById('playerVlcBtn');
+  if (playerVlc) {
+    playerVlc.onclick = (e) => { e.stopPropagation(); openInVLC(ch); };
+  }
 
   playStream(ch.url);
   renderChannelList();
