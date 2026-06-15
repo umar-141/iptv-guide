@@ -315,7 +315,8 @@ function renderChannelList() {
 // ═══════════════════════ VLC ═══════════════════════
 function openInVLC(ch) {
   const m3u = '#EXTM3U\n#EXTINF:-1 tvg-name="' + ch.name + '" tvg-logo="' + (ch.logo || '') + '" group-title="' + (ch.group || '') + '",' + ch.name + '\n' + ch.url + '\n';
-  const blob = new Blob([m3u], { type: 'audio/x-mpegurl' });
+  // Use octet-stream so Windows does NOT auto-open with a default app (Roblox hijacks .m3u)
+  const blob = new Blob([m3u], { type: 'application/octet-stream' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
   a.href = url;
@@ -324,7 +325,7 @@ function openInVLC(ch) {
   a.click();
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
-  showToast('Downloading .m3u for VLC — double-click the file to open in VLC', 'success');
+  showToast('Saved! Right-click the .m3u file → Open with → VLC', 'success');
 }
 
 // ═══════════════════════ PLAYER ═══════════════════════
