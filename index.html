@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>IPTV Guide — EPG</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📺</text></svg>" />
+</head>
+<body>
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="logo">
+      <span class="logo-icon">📺</span>
+      <span class="logo-text">IPTV<span class="logo-accent">Guide</span></span>
+    </div>
+    <div class="header-controls">
+      <div class="search-wrap">
+        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input id="searchInput" type="text" placeholder="Search channels…" autocomplete="off" />
+        <button id="clearSearch" class="btn-icon" title="Clear" style="display:none">✕</button>
+      </div>
+      <button id="importBtn" class="btn-primary">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Import M3U
+      </button>
+      <button id="themeToggle" class="btn-icon" title="Toggle theme">🌙</button>
+    </div>
+  </header>
+
+  <!-- MAIN LAYOUT -->
+  <div class="app-body">
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-top">
+        <div class="category-bar" id="categoryBar">
+          <button class="cat-btn active" data-cat="all">All</button>
+        </div>
+      </div>
+      <ul class="channel-list" id="channelList"></ul>
+      <div class="sidebar-empty" id="sidebarEmpty">
+        <div class="empty-icon">📡</div>
+        <p>No channels loaded</p>
+        <p class="hint">Click <strong>Import M3U</strong> to add your playlist</p>
+        <button class="btn-primary" onclick="document.getElementById('importBtn').click()">Import M3U</button>
+      </div>
+    </aside>
+
+    <!-- MAIN CONTENT -->
+    <main class="main-content">
+      <!-- Player -->
+      <section class="player-section" id="playerSection" style="display:none">
+        <div class="player-wrap">
+          <video id="videoPlayer" controls autoplay></video>
+          <div class="player-info">
+            <span id="playerChannelName" class="player-channel"></span>
+            <span id="playerProgramName" class="player-program"></span>
+            <button id="closePlayer" class="btn-icon" title="Close">✕</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- EPG Grid -->
+      <section class="epg-section">
+        <div class="epg-toolbar">
+          <h2 class="epg-title">Program Guide</h2>
+          <div class="epg-nav">
+            <button id="epgPrev" class="btn-sm">&#8592; Prev</button>
+            <span id="epgDateLabel" class="epg-date"></span>
+            <button id="epgNext" class="btn-sm">Next &#8594;</button>
+            <button id="epgNow" class="btn-sm btn-accent">Now</button>
+          </div>
+          <div class="epg-import-hint" id="epgImportHint">
+            <span>Import XMLTV for schedule data</span>
+            <button id="importEpgBtn" class="btn-xs">Import EPG</button>
+          </div>
+        </div>
+        <div class="epg-grid-wrap" id="epgGridWrap">
+          <div class="epg-time-header" id="epgTimeHeader"></div>
+          <div class="epg-grid" id="epgGrid"></div>
+        </div>
+        <div class="epg-empty" id="epgEmpty">
+          <div class="empty-icon">&#128198;</div>
+          <p>No channels loaded yet</p>
+          <p class="hint">Import a playlist to see the program guide</p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- IMPORT MODAL -->
+  <div class="modal-overlay" id="importModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Import Playlist</h3>
+        <button class="btn-icon modal-close" id="closeImportModal">✕</button>
+      </div>
+      <div class="modal-tabs">
+        <button class="tab-btn active" data-tab="url">URL</button>
+        <button class="tab-btn" data-tab="file">File</button>
+        <button class="tab-btn" data-tab="paste">Paste</button>
+        <button class="tab-btn" data-tab="demo">Demo</button>
+      </div>
+      <div class="tab-content" id="tabUrl">
+        <label>M3U Playlist URL</label>
+        <input id="m3uUrl" type="url" placeholder="https://example.com/playlist.m3u" />
+        <p class="modal-hint">&#9888;&#65039; The server must allow CORS. If it fails, use File or Paste tab.</p>
+        <button class="btn-primary full" id="loadUrlBtn">Load from URL</button>
+      </div>
+      <div class="tab-content hidden" id="tabFile">
+        <label>Upload M3U File</label>
+        <div class="file-drop" id="fileDrop">
+          <div class="file-drop-icon">&#128194;</div>
+          <p>Drop your <strong>.m3u</strong> or <strong>.m3u8</strong> file here</p>
+          <p class="hint">or</p>
+          <label class="btn-primary" for="fileInput">Browse File</label>
+          <input type="file" id="fileInput" accept=".m3u,.m3u8,.txt" hidden />
+        </div>
+      </div>
+      <div class="tab-content hidden" id="tabPaste">
+        <label>Paste M3U Content</label>
+        <textarea id="m3uPaste" rows="10" placeholder="#EXTM3U&#10;#EXTINF:-1 tvg-name=&quot;CNN&quot; group-title=&quot;News&quot;,CNN&#10;http://example.com/stream.m3u8"></textarea>
+        <button class="btn-primary full" id="parsePasteBtn">Load Channels</button>
+      </div>
+      <div class="tab-content hidden" id="tabDemo">
+        <p>Load a demo playlist to explore the interface:</p>
+        <div class="demo-list">
+          <div class="demo-item" onclick="loadDemo('basic')">
+            <div class="demo-icon">&#128250;</div>
+            <div><strong>Basic Demo</strong><p>12 sample channels across 4 categories</p></div>
+          </div>
+          <div class="demo-item" onclick="loadDemo('news')">
+            <div class="demo-icon">&#128240;</div>
+            <div><strong>News Only</strong><p>5 news channels with demo streams</p></div>
+          </div>
+        </div>
+      </div>
+      <div id="importProgress" class="import-progress hidden">
+        <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+        <span id="progressText">Loading…</span>
+      </div>
+      <div id="importError" class="import-error hidden"></div>
+    </div>
+  </div>
+
+  <!-- EPG MODAL -->
+  <div class="modal-overlay" id="epgModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h3>Import EPG (XMLTV)</h3>
+        <button class="btn-icon" id="closeEpgModal">✕</button>
+      </div>
+      <label>XMLTV URL</label>
+      <input id="epgUrl" type="url" placeholder="https://example.com/epg.xml" />
+      <button class="btn-primary full" id="loadEpgBtn" style="margin-top:10px">Load from URL</button>
+      <p class="modal-hint" style="margin-top:12px">Or paste XMLTV XML:</p>
+      <textarea id="epgPaste" rows="8" placeholder='&lt;?xml version="1.0"?&gt;&#10;&lt;tv&gt;...&lt;/tv&gt;'></textarea>
+      <button class="btn-primary full" id="parseEpgBtn" style="margin-top:8px">Parse EPG</button>
+      <div id="epgError" class="import-error hidden"></div>
+    </div>
+  </div>
+
+  <!-- TOAST -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest/dist/hls.min.js"></script>
+  <script src="js/m3u-parser.js"></script>
+  <script src="js/epg-parser.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
